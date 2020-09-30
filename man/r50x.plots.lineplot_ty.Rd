@@ -7,7 +7,7 @@
 r50x.plots.lineplot_ty(
   EXPdata,
   title,
-  legend,
+  legend = "Legend",
   y_label,
   x_label = "Year",
   LaTeX_text = FALSE,

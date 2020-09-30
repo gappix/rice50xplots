@@ -3,7 +3,7 @@
 
 #' Parses gdx name and path and extracts experiment informations
 #'
-#' @param experiment list-structure with experiment infos, output of RICEx.parse.gdx_experiment function
+#' @param experiment list-structure with experiment infos, output of r50x.parse.gdx_experiment function
 #' @param original_list experiment structure where to add informations
 #'
 #' @noRd

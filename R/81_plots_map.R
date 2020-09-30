@@ -11,7 +11,9 @@
 
 
 # library(gridExtra)
+library("tibble")
 library("ggpubr")
+
 
 
 
@@ -158,9 +160,9 @@ RICExplot.combo.lineplot_nty <- function( EXPdata
               nRow = ceiling(length(EXPdata)/nCol)  }
 
 
-  plottigat = annotate_figure( do.call("ggarrange", c(plotlist, ncol=nCol, nrow=nRow,  common.legend = TRUE, legend="right") ) 
-                               , top =  text_grob( mytitle, face = "bold", size = 16)
-                              )                               
+  plottigat = ggpubr::annotate_figure( do.call("ggarrange", c(plotlist, ncol=nCol, nrow=nRow,  common.legend = TRUE, legend="right") ) 
+                                      , top =  text_grob( mytitle, face = "bold", size = 16)
+                                      )                               
 
   return(plottigat)
 
@@ -281,8 +283,8 @@ RICExplot.combo.map <- function( EXPdata
 
   }
 
-  annotate_figure(do.call("ggarrange", c(plotlist, ncol=nCol, nrow=nRow,  common.legend = TRUE, legend="right")) 
-                  ,top =  text_grob(myTitle, face = "bold", size = 16)
+  ggpubr::annotate_figure(do.call("ggarrange", c(plotlist, ncol=nCol, nrow=nRow,  common.legend = TRUE, legend="right")) 
+                           ,top =  text_grob(myTitle, face = "bold", size = 16)
   )
   
                             

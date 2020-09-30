@@ -226,7 +226,7 @@ pollos_colors <- tribble(
 
 #____ FUNCTION ____
 # To retrieve correct colors among# selected ones
-#
+#' @export
 i_want_pollos_colors <- function(     howmany_colors      = NULL
                                     , howmany_categories  = NULL
                                     , colors_per_category = NULL

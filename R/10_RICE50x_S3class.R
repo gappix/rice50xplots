@@ -104,6 +104,32 @@ RICE50xS3Class <- function(gdx_file_and_path){
     }
 
 
+
+  # Function to evaluate NPV from CASHflow_nty variable
+  my_NPV_evaluator_nty2n <- function(CASHflow_nty
+                                     , disc_rate = 0.03
+                                     , start_year = 2015
+                                     , end_year= 2100){
+
+
+    # equal formula:  sum{t=1:T}(R(t)/(1+i)^t)
+    # applied for each n-country
+
+    CASHflow_nty %>%
+      select(n,value,year) %>%
+      filter(year >= start_year,
+             year <= end_year   ) %>%
+      mutate(yearly_value = value*((1+disc_rate)^(-(year-start_year)))) %>%
+      group_by(n) %>%
+      summarise(value = sum(yearly_value)) %>%
+      as.data.frame()
+
+  }
+
+
+
+
+
   ## DISAGGREGATING FUNCTIONS --------------------------
 
   # disaggregating from n regions to iso3 regions
@@ -134,6 +160,32 @@ RICE50xS3Class <- function(gdx_file_and_path){
                                               by = c("n","t","year")
                                               )  %>% mutate(value = abatecosts/ykali * 100) %>% dplyr::select(n,t,year,value) %>% mutate(unit = "% baseline")
   }
+
+
+
+  my_ABATECOST_YBASEperc_NPV <- function(disc_rate = 0.03, start_year = 2015, end_year= 2100){
+
+    merge(my_NPV_evaluator_nty2n( CASHflow_nty = my_getVariable_nty("ABATECOST"), disc_rate, start_year, end_year) %>% rename(abcost = value),
+          my_NPV_evaluator_nty2n( CASHflow_nty = my_getVariable_nty("ykali"),     disc_rate, start_year, end_year) %>% rename(ykali  = value),
+          by = c("n")) %>%
+      mutate( value = abcost/ykali*100 ) %>%
+      mutate( unit = "% GDPbaseline NPV") %>%
+      mutate( notes = "disc_rate="%&%disc_rate%&%", start="%&%start_year%&%", end="%&%end_year)
+  }
+
+
+
+
+  my_Ycap_nty <- function(){ merge( my_getVariable_nty("Y"    ) %>% rename(gdp    = value),
+                                    my_getVariable_nty("pop"  ) %>% rename(pop  = value),
+                                    by = c("n","t","year")
+                                )   %>%  
+                                mutate(value = (gdp * 1000000)/pop)   %>%   
+                                dplyr::select(n,t,year,value)  %>%  
+                                mutate(unit = "USD/person")
+  }
+
+
 
   my_ABATEDEMI_nty  <- function(){  my_getVariable_nty("ABATEDEMI",    unit = "GtCO2/year"          )
   }
@@ -166,9 +218,22 @@ RICE50xS3Class <- function(gdx_file_and_path){
 
   my_DAMAGES_abs_nty   <- function(){ my_getVariable_nty("DAMAGES",      unit = "Trill 2005 USD/year" ) }
 
-  my_DAMAGES_BASEperc_nty  <- function(){ my_getVariable_nty("damfrac_ykali", unit = "% baseline" ) }
+  my_DAMAGES_BASEperc_nty  <- function(){ my_getVariable_nty("damfrac_ykali", unit = "% GDPbaseline" ) }
 
   my_DAMAGES_YGROSSperc_nty  <- function(){ my_getVariable_nty("damfrac_ygross", unit = "% GDPgross" ) }
+
+
+
+
+  my_DAMAGES_YBASEperc_NPV <- function(disc_rate = 0.03, start_year = 2015, end_year= 2100){
+
+    merge(my_NPV_evaluator_nty2n( CASHflow_nty = my_getVariable_nty("DAMAGES"), disc_rate, start_year, end_year) %>% rename(damage = value),
+          my_NPV_evaluator_nty2n( CASHflow_nty = my_getVariable_nty("ykali"),   disc_rate, start_year, end_year) %>% rename(ykali  = value),
+          by = c("n")) %>%
+      mutate( value = -damage/ykali*100 ) %>% # (-) is damage (+) is gain
+      mutate( unit = "% GDPbaseline NPV") %>%
+      mutate( notes = "disc_rate="%&%disc_rate%&%", start="%&%start_year%&%", end="%&%end_year)
+  }
 
 
 
@@ -306,11 +371,19 @@ RICE50xS3Class <- function(gdx_file_and_path){
       get_POPshare_nty                    = get("my_POPshare_nty",         thisEnv) ,
 
 
+      # gdp
+      get_Ycap_nty                        = get("my_Ycap_nty",             thisEnv) ,
+
+
+      # abatecosts
+      get_ABATECOST_YBASEperc_NPV         = get("my_ABATECOST_YBASEperc_NPV",          thisEnv) ,
+
 
       # impacts
-      get_DAMAGES_abs_nty                 = get("my_DAMAGES_abs_nty",                   thisEnv) ,
-      get_DAMAGES_BASEperc_nty            = get("my_DAMAGES_BASEperc_nty",              thisEnv) ,
-      get_DAMAGES_YGROSSperc_nty          = get("my_DAMAGES_YGROSSperc_nty",            thisEnv) ,
+      get_DAMAGES_abs_nty                 = get("my_DAMAGES_abs_nty",                  thisEnv) ,
+      get_DAMAGES_BASEperc_nty            = get("my_DAMAGES_BASEperc_nty",             thisEnv) ,
+      get_DAMAGES_YGROSSperc_nty          = get("my_DAMAGES_YGROSSperc_nty",           thisEnv) ,
+      get_DAMAGES_YBASEperc_NPV           = get("my_DAMAGES_YBASEperc_NPV",            thisEnv) ,
       get_world_DAMAGES_abs_ty            = get("my_world_DAMAGES_abs_ty",             thisEnv) ,
       get_world_DAMAGES_BASEperc_ty       = get("my_world_DAMAGES_BASEperc_ty",        thisEnv) ,
       get_world_DAMAGES_YGROSSperc_ty     = get("my_world_DAMAGES_YGROSSperc_ty",      thisEnv) ,
@@ -358,9 +431,55 @@ RICE50xS3Class <- function(gdx_file_and_path){
 
 }
 
+#'
+#' @export
+r50x.RICE50xS3Class_selectors <- list(
 
 
+  "get_TATM_2100" = "get_TATM_ty() %>% filter(year == 2100)",
 
+"get_ppp2mer_nty"         = "get_ppp2mer_nty()",
+"get_ABATECOSTabs_nty"    = "get_ABATECOSTabs_nty()",
+"get_ABATECOSTperc_nty"   = "get_ABATECOSTperc_nty()" ,
+"get_ABATEDEMI_nty"       = "get_ABATEDEMI_nty()",
+"get_CONSUMPTION_nty"     = "get_CONSUMPTION_nty()" ,
+"get_CIntensity_nty"      = "get_CIntensity_nty()",
+"get_CPRICE_nty"          = "get_CPRICE_nty()",
+"get_EMI_nty"             = "get_EMI_nty()",
+"get_EIND_nty"            = "get_EIND_nty()",
+"get_ELAND_nty"           = "get_ELAND_nty()",
+"get_MIU_nty"             = "get_MIU_nty()",
+"get_SCC_nty"             = "get_SCC_nty()",
+"get_POPshare_nty"        = "get_POPshare_nty()",
+"get_YGROSS_nty"          = "get_VARIABLE_nty(variable_name=\"YGROSS\")",
+# impacts
+"get_DAMAGES_abs_nty"               = "get_DAMAGES_abs_nty()",
+"get_DAMAGES_BASEperc_nty"          = "get_DAMAGES_BASEperc_nty()",
+"get_DAMAGES_YGROSSperc_nty"        = "get_DAMAGES_YGROSSperc_nty()",
+"get_world_DAMAGES_abs_ty"          = "get_world_DAMAGES_abs_ty()",
+"get_world_DAMAGES_BASEperc_ty"     = "get_world_DAMAGES_BASEperc_ty()",
+"get_world_DAMAGES_YGROSSperc_ty"   = "get_world_DAMAGES_YGROSSperc_ty()",
+"get_world_DAMAGES_abs_MER_ty"      = "get_world_DAMAGES_abs_MER_ty()",
+"get_world_DAMAGES_BASEperc_MER_t"  = "get_world_DAMAGES_BASEperc_MER_t()",
+"get_world_DAMAGES_YGROSSperc_MER"  = "get_world_DAMAGES_YGROSSperc_MER()",
+# temperatures
+"get_TREGIONabs_nty"        = "get_TREGIONabs_nty()",
+"get_TREGIONincr_nty"       = "get_TREGIONincr_nty()",
+"get_TREGIONbase_n"         = "get_TREGIONbase_n()",
+"get_TATM_ty"               = "get_TATM_ty()",
+"get_world_ABATECOST_ty"    = "get_world_ABATECOST_ty()",
+"get_world_ABATEDEMI_ty"    = "get_world_ABATEDEMI_ty()",
+"get_world_EMItot_ty"       = "get_world_EMItot_ty()",
+"get_world_EMIffi_ty"       = "get_world_EMIffi_ty()",
+"get_world_CIntensity_ty"   = "get_world_CIntensity_ty()",
+"get_world_CONSUMPTION_ty"  = "get_world_CONSUMPTION_ty()",
+# exposed general-purpouse funct
+"get_VARIABLE_nty"  = "get_VARIABLE_nty()",
+"get_VARIABLE_ty"   = "get_VARIABLE_ty()",
+"get_VARIABLE"      = "get_VARIABLE()",
+"get_GDX"           = "get_GDX()"
+
+)
 
 
 
@@ -369,7 +488,7 @@ RICE50xS3Class <- function(gdx_file_and_path){
 #' @param command_string string containing command that has to follor '$'-operator
 #' in RICE50xS3class
 #' @noRd
-RICEx.utils.RICExs3class_custom_selection_function  <- function(command_string){
+r50x.utils.RICE50xS3Class_selector_builder  <- function(command_string){
 
 
   return( function(.df){ return(eval(parse(text =paste0('.df$',command_string)))) })

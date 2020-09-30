@@ -15,7 +15,7 @@ r50x.import.results_as_list <- function( experiment_id,
 
 
   # Step1: find new results
-  gdx_with_path_list  =  RICEx.find.new_results(experiment_id, last_import_time)
+  gdx_with_path_list  =  r50x.find.new_results(experiment_id, last_import_time)
 
   if (length(gdx_with_path_list) > 0){
 
@@ -32,7 +32,7 @@ r50x.import.results_as_list <- function( experiment_id,
 
 
       # 2a: parse gdx data and experiment info automatically
-      exp_data_and_info =  RICEx.parse.gdx_experiment(gdx_path_element)
+      exp_data_and_info =  r50x.parse.gdx_experiment(gdx_path_element)
 
       # 2b: tide infos and data in nested list structure
       my_experiments    =  RICEx.build.add_parsed_experiment_into_list(exp_data_and_info, my_experiments)

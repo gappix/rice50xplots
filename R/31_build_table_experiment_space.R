@@ -5,11 +5,11 @@
 #' and variable values.
 #'
 #' @param exp_table current experiments-space table
-#' @param experiment_parsed list-structure with experiment infos, output of RICEx.parse.gdx_experiment function
+#' @param experiment_parsed list-structure with experiment infos, output of r50x.parse.gdx_experiment function
 #' @param variable_extracted_data dataframe containing data extracted from gdx-file (e.g., TATM_ty variable)
 #'
 #' @noRd
-RICEx.build.table_with_variable_and_experiment_space <- function(exp_table = NULL
+r50x.build.table_with_variable_and_experiment_space <- function(exp_table = NULL
                                                                  ,experiment_parsed
                                                                  ,variable_extracted_data ){
 
@@ -19,8 +19,8 @@ RICEx.build.table_with_variable_and_experiment_space <- function(exp_table = NUL
 
 
   # TEST BOX .................................................................................................................................................................................................
-  #1:  experiment = RICEx.parse.gdx_experiment("C:/Users/GaPPi/Documents/PhD Projects/RICEx-PROJECT/RICEx-Plots/../RICEx-Results/PaperII//ed57/RICEx_d0x9x1_CBA_ssp1_BHMn-LR_coop-pop_prstp-0.001_disnt-g2.gdx")
-  #2:  experiment = RICEx.parse.gdx_experiment("C:/Users/GaPPi/Documents/PhD Projects/RICEx-PROJECT/RICEx-Plots/../RICEx-Results/PaperII//ed57/RICEx_d0x9x1_BAU_ssp5_KAHNn.gdx")
+  #1:  experiment = r50x.parse.gdx_experiment("C:/Users/GaPPi/Documents/PhD Projects/RICEx-PROJECT/RICEx-Plots/../RICEx-Results/PaperII//ed57/RICEx_d0x9x1_CBA_ssp1_BHMn-LR_coop-pop_prstp-0.001_disnt-g2.gdx")
+  #2:  experiment = r50x.parse.gdx_experiment("C:/Users/GaPPi/Documents/PhD Projects/RICEx-PROJECT/RICEx-Plots/../RICEx-Results/PaperII//ed57/RICEx_d0x9x1_BAU_ssp5_KAHNn.gdx")
   #    extracted_data = experiment$data$get_TATM_ty
   #............................................................................................................................................................................................................
 
@@ -56,7 +56,7 @@ RICEx.build.table_with_variable_and_experiment_space <- function(exp_table = NUL
   ## Merge with main table  ............................
 
 
-  if(is.null(exp_table)){
+  if(is.null(exp_table) | (length(exp_table) <=1 ) ){
 
     # if null, this is the main table.
     exp_table = data_df
@@ -72,9 +72,10 @@ RICEx.build.table_with_variable_and_experiment_space <- function(exp_table = NUL
       # TEST BOX ..........
       # i = "prstp"
       #....................
-      set(exp_table, which(is.na(exp_table[[i]])), i, RICEx.model.experiment_dimensions.get_default_value(i) )
+      data.table::set(exp_table, which(is.na(exp_table[[i]])), i, RICEx.model.experiment_dimensions.get_default_value(i) )
     }
   }
+
 
   # TEST BOX ..........
   # view(exp_table)

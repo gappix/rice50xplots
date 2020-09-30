@@ -6,11 +6,13 @@
 #' @param experiment_id current experiment codename
 #' @param my_experiments list-structure to store experiments
 #' @param last_import_time sys_time of last import (to detect new files)
-#'
-RICEx.import.experiment_table <- function(experiment_id
-                                             ,RICExclass_selection_function
+#' @export
+r50x.import.experiment_table <- function(experiment_id
+                                             ,RICE50xS3Class_selection_function
                                              ,data_exp_table = NULL
                                              ,last_import_time = 0
+                                             ,year_start = 1
+                                             ,year_end = r50x.SettingsS3$get_default_year_horizon()
 ){
 
 
@@ -18,12 +20,12 @@ RICEx.import.experiment_table <- function(experiment_id
   # experiment_id = "PaperII"
   # last_import_time = 0
   # data_exp_table = NULL
-  # RICExclass_selection_function = RICEx.utils.RICExs3class_custom_selection_function("get_TATM_ty %>% filter(year == 2100)")
+  # RICE50xS3Class_selector = r50x.utils.RICE50xS3Class_selector_builder("get_TATM_ty %>% filter(year == 2100)")
   #............................................................................................................................
 
   #_______
   # Step1: find all < experiment_id > results
-  gdx_with_path_list  =  RICEx.find.new_results(experiment_id, last_import_time)
+  gdx_with_path_list  =  r50x.find.new_results(experiment_id, last_import_time)
 
 
 
@@ -50,15 +52,22 @@ RICEx.import.experiment_table <- function(experiment_id
 
 
       # 2a: parse gdx data and experiment info automatically
-      exp_parsed =  RICEx.parse.gdx_experiment(gdx_path_element)
+      exp_parsed =  r50x.parse.gdx_experiment(gdx_path_element)
 
 
       # 2b: extract data
-      variable_data = exp_parsed$data %>% RICExclass_selection_function()
+      variable_data = exp_parsed$data %>% RICE50xS3Class_selection_function()
 
 
-      # 2c: update table with data
-      data_exp_table    =  RICEx.build.table_with_variable_and_experiment_space(exp_table = data_exp_table
+      # 2c: apply filter on year (if present)
+      # if("year" %in% colnames(variable_data)){ variable_data = variable_data %>%
+      #   filter(year <= year_end  ) %>%
+      #   filter(year >= year_start)
+      # }
+
+
+      # 2d: update table with data
+      data_exp_table    =  r50x.build.table_with_variable_and_experiment_space( exp_table = data_exp_table
                                                                                 ,experiment_parsed = exp_parsed
                                                                                 ,variable_extracted_data = variable_data)
 
@@ -77,10 +86,10 @@ RICEx.import.experiment_table <- function(experiment_id
 
 
   # TEST BOX ...................................
-  # view(data_exp_table)
+  # View(data_exp_table)
   #.............................................
 
-  #cat(orange$bold("Done! << ", length(gdx_with_path_list) ," >> experiments inside built table\n"))
+  cat(orange$bold("Done! << ", length(gdx_with_path_list) ," >> experiments inside built table\n"))
 
 
   return(data_exp_table)

@@ -5,7 +5,7 @@ library("stringr")
 #'
 #' @param gdx_name_with_full_path
 #' @export
-RICEx.parse.gdx_experiment <- function(gdx_name_with_full_path){
+r50x.parse.gdx_experiment <- function(gdx_name_with_full_path){
 
 
   ## TEST BOX ............................................................................................................................................................................

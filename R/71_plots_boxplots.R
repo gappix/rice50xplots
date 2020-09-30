@@ -78,12 +78,12 @@ RICExplot.boxplot   <- function( EXPdata,
     
     geom_boxplot(size = 1.1)   +
     
-    stat_summary(fun.y = mean, geom = "errorbar", 
+    stat_summary(fun = mean, geom = "errorbar", 
                  aes(ymax = ..y.., ymin = ..y..),
                  width = 1, linetype = "dashed", size = 1, color = "black") +
     
-    stat_summary(fun.y=mean,  geom="text",
-                 aes( label= paste0(round(..y.., digits=1),my_unit)),
+    stat_summary(fun=mean,  geom="text",
+                 aes( label= paste0(round(..y.., digits=1))),
                  show.legend = FALSE, 
                  color = "black",
                  vjust=-0.7)

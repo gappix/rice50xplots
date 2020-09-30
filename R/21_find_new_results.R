@@ -8,7 +8,7 @@
 #'
 #' @noRd
 #'
-RICEx.find.new_results <- function(experiment_id
+r50x.find.new_results <- function(experiment_id
                                    ,results_folder = NULL
                                    ,last_import_time = 0){
 

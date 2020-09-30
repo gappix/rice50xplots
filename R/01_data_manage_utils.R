@@ -1,4 +1,10 @@
 
+#' Useful function to easily concateate strings
+#' Its equivalent to 'paste0' function bu nicer
+#' @export
+'%&%' <- function(x,y) paste0(x,y)
+
+
 
 #' Transform t into years (starting from 2015)
 #' @noRd
